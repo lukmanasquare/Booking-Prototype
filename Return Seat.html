@@ -838,7 +838,7 @@
 
   <div class="back-bar">
     <div class="back-inner">
-      <a class="back-link" href="Outbound Seat.html">← Back to Outbound</a>
+      <a class="back-link" href="Outbound Seat.html">← Back to Outbound Seats</a>
     </div>
   </div>
 
@@ -1078,215 +1078,221 @@
     </div>
   </div>
 
-  <script>
-    const outboundSelection = JSON.parse(localStorage.getItem('outboundSelection') || 'null') || {
-      route: 'DTW → DEN',
-      date: 'Mar 28, 2026',
-      flight: 'Flight F9 123',
-      bundle: 'Premium Bundle',
-      total: 142
-    };
+<script>
+  const outboundSelection = JSON.parse(localStorage.getItem('outboundSelection') || 'null') || {
+    route: 'DTW → DEN',
+    date: 'Mar 28, 2026',
+    flight: 'Flight F9 123',
+    bundle: 'Premium Bundle',
+    total: 142
+  };
 
-    const returnSelection = JSON.parse(localStorage.getItem('returnSelection') || 'null') || {
-      route: 'DEN → DTW',
-      date: 'Apr 05, 2026',
-      flight: 'Flight F9 456',
-      bundle: 'Premium Bundle',
-      total: 181
-    };
+  const returnSelection = JSON.parse(localStorage.getItem('returnSelection') || 'null') || {
+    route: 'DEN → DTW',
+    date: 'Apr 05, 2026',
+    flight: 'Flight F9 456', // Corrected flight number
+    bundle: 'Premium Bundle',
+    total: 181
+  };
 
-    const seatTypeMeta = {
-      upfront: {
-        label: 'Upfront Plus',
-        price: 54,
-        benefits: [
-          'Empty middle seat or 2x2 seat configuration.',
-          'Extra legroom for more comfort.',
-          'Front cabin convenience and faster exit.'
-        ],
-        color: '#4b32a8'
-      },
-      premium: {
-        label: 'Premium Seating',
-        price: 25,
-        benefits: [
-          'Extra legroom for a more relaxed trip.',
-          'A more comfortable cabin location.',
-          'Great balance of comfort and value.'
-        ],
-        color: '#005a41'
-      },
-      preferred: {
-        label: 'Preferred Seating',
-        price: 15,
-        benefits: [
-          'Sit closer to the front, quick exit.',
-          'Secure your seat alongside travel companions.',
-          'Enjoy the standard Frontier seat comfort.'
-        ],
-        color: '#00a9e0'
-      },
-      standard: {
-        label: 'Standard Seating',
-        price: 0,
-        benefits: [
-          'No extra seat charge added.',
-          'Comfortable standard cabin placement.',
-          'A budget-friendly seating option.'
-        ],
-        color: '#9ca3af'
-      }
-    };
+  const seatTypeMeta = {
+    upfront: {
+      label: 'Upfront Plus',
+      price: 54,
+      benefits: [
+        'Empty middle seat or 2x2 seat configuration.',
+        'Extra legroom for more comfort.',
+        'Front cabin convenience and faster exit.'
+      ],
+      color: '#4b32a8'
+    },
+    premium: {
+      label: 'Premium Seating',
+      price: 25,
+      benefits: [
+        'Extra legroom for a more relaxed trip.',
+        'A more comfortable cabin location.',
+        'Great balance of comfort and value.'
+      ],
+      color: '#005a41'
+    },
+    preferred: {
+      label: 'Preferred Seating',
+      price: 15,
+      benefits: [
+        'Sit closer to the front, quick exit.',
+        'Secure your seat alongside travel companions.',
+        'Enjoy the standard Frontier seat comfort.'
+      ],
+      color: '#00a9e0'
+    },
+    standard: {
+      label: 'Standard Seating',
+      price: 0,
+      benefits: [
+        'No extra seat charge added.',
+        'Comfortable standard cabin placement.',
+        'A budget-friendly seating option.'
+      ],
+      color: '#9ca3af'
+    }
+  };
 
-    const EMPTY_RETURN_SEAT = { seat: 'Not selected', type: null, price: 0 };
-    const fallbackOutboundSeat = { seat: '5C', type: 'preferred', price: 15 };
-    const storedOutboundSeat = JSON.parse(localStorage.getItem('outboundSeatSelection') || 'null');
-    const carriedOutboundSeat = storedOutboundSeat && storedOutboundSeat.seat && storedOutboundSeat.seat !== 'No seat selected'
-      ? storedOutboundSeat
-      : fallbackOutboundSeat;
+  const EMPTY_RETURN_SEAT = { seat: 'Not selected', type: null, price: 0 };
+  const fallbackOutboundSeat = { seat: '5C', type: 'preferred', price: 15 };
+  const storedOutboundSeat = JSON.parse(localStorage.getItem('outboundSeatSelection') || 'null');
+  const carriedOutboundSeat = storedOutboundSeat && storedOutboundSeat.seat && storedOutboundSeat.seat !== 'No seat selected'
+    ? storedOutboundSeat
+    : fallbackOutboundSeat;
 
-    let selectedReturnSeat = { ...EMPTY_RETURN_SEAT };
-    let confirmedReturnSeat = JSON.parse(localStorage.getItem('returnSeatSelection') || 'null');
+  let selectedReturnSeat = { ...EMPTY_RETURN_SEAT };
+  let confirmedReturnSeat = JSON.parse(localStorage.getItem('returnSeatSelection') || 'null');
 
-    const seats = document.querySelectorAll('.seat');
+  const seats = document.querySelectorAll('.seat');
 
-    function currency(value){
-      return `$${Number(value).toFixed(2)}`;
+  function currency(value) {
+    return `$${Number(value).toFixed(2)}`;
+  }
+
+  function getSeatLabel(type) {
+    if (!type || !seatTypeMeta[type]) return '';
+    return seatTypeMeta[type].label.replace(' Seating', '');
+  }
+
+  function resetPendingSeatState() {
+    selectedReturnSeat = { ...EMPTY_RETURN_SEAT };
+  }
+
+  function clearConfirmedSeatSelection() {
+    confirmedReturnSeat = { ...EMPTY_RETURN_SEAT };
+    localStorage.removeItem('returnSeatSelection');
+  }
+
+  function persistConfirmedSeatSelection() {
+    localStorage.setItem('returnSeatSelection', JSON.stringify(confirmedReturnSeat));
+  }
+
+  // Function to update the flight and date header with the flight number and date
+  function updateHeaderBar() {
+    document.getElementById('barDate').textContent = (returnSelection.date || 'Apr 05, 2026').replace(', 2026', '');
+    document.getElementById('barFlight').textContent = returnSelection.flight || 'Flight F9 456';  // Correct flight number
+  }
+
+  // Ensure the header bar is updated when the page loads
+  window.addEventListener('load', () => {
+    updateHeaderBar();
+  });
+
+  function updateSeatVisuals() {
+    seats.forEach(seat => seat.classList.remove('selected'));
+    if (selectedReturnSeat.seat && selectedReturnSeat.seat !== EMPTY_RETURN_SEAT.seat) {
+      const current = document.querySelector(`.seat[data-seat="${selectedReturnSeat.seat}"]`);
+      if (current) current.classList.add('selected');
+    }
+  }
+
+  function updateSelectedCard() {
+    const icon = document.querySelector('.selected-seat-icon');
+
+    if (selectedReturnSeat.seat === EMPTY_RETURN_SEAT.seat || !selectedReturnSeat.type) {
+      document.getElementById('selectedCardTitle').textContent = 'Seat Selection';
+      document.getElementById('selectedCardSub').textContent = 'Selected: Not selected';
+      document.getElementById('benefit1').textContent = 'Choose any available return seat to see the updated trip total.';
+      document.getElementById('benefit2').textContent = 'Your default total stays at $338.00 until you confirm a return seat choice.';
+      document.getElementById('benefit3').textContent = 'Continue to Bags will carry your confirmed return seat into the outbound bags page.';
+      icon.style.color = '#9ca3af';
+      return;
     }
 
-    function getSeatLabel(type){
-      if(!type || !seatTypeMeta[type]) return '';
-      return seatTypeMeta[type].label.replace(' Seating','');
-    }
+    const type = seatTypeMeta[selectedReturnSeat.type];
+    document.getElementById('selectedCardTitle').textContent = `${type.label} (+$${type.price})`;
+    document.getElementById('selectedCardSub').textContent = `Selected: ${selectedReturnSeat.seat}`;
+    document.getElementById('benefit1').textContent = type.benefits[0];
+    document.getElementById('benefit2').textContent = type.benefits[1];
+    document.getElementById('benefit3').textContent = type.benefits[2];
+    icon.style.color = type.color;
+  }
 
-    function resetPendingSeatState(){
-      selectedReturnSeat = { ...EMPTY_RETURN_SEAT };
-    }
+  function updateSummary() {
+    const outboundFlightTotal = Number(outboundSelection.total || 0);
+    const returnFlightTotal = Number(returnSelection.total || 0);
+    const seatTotal = Number(carriedOutboundSeat.price || 0) + Number(selectedReturnSeat.price || 0);
+    const grandTotal = outboundFlightTotal + returnFlightTotal + seatTotal;
 
-    function clearConfirmedSeatSelection(){
-      confirmedReturnSeat = { ...EMPTY_RETURN_SEAT };
+    document.getElementById('outboundFlightTotal').textContent = currency(outboundFlightTotal);
+    document.getElementById('returnFlightTotal').textContent = currency(returnFlightTotal);
+    document.getElementById('outboundFlightSub').textContent = `${outboundSelection.route || 'DTW → DEN'} • ${outboundSelection.date || 'Mar 28, 2026'}`;
+    document.getElementById('returnFlightSub').textContent = `${returnSelection.route || 'DEN → DTW'} • ${returnSelection.date || 'Apr 05, 2026'}`;
+
+    document.getElementById('seatSelectionTotal').textContent = currency(seatTotal);
+    document.getElementById('outboundSeatLine').textContent = `${carriedOutboundSeat.seat} (${getSeatLabel(carriedOutboundSeat.type)})`;
+    document.getElementById('outboundSeatPrice').textContent = currency(carriedOutboundSeat.price || 0);
+    document.getElementById('returnSeatLine').textContent = selectedReturnSeat.seat === EMPTY_RETURN_SEAT.seat ? 'Not selected' : `${selectedReturnSeat.seat} (${getSeatLabel(selectedReturnSeat.type)})`;
+    document.getElementById('returnSeatPrice').textContent = currency(selectedReturnSeat.price || 0);
+    document.getElementById('grandTotal').textContent = currency(grandTotal);
+
+    document.getElementById('bottomSeatText').textContent = selectedReturnSeat.seat === EMPTY_RETURN_SEAT.seat ? 'No Seat Selected' : `Seat ${selectedReturnSeat.seat} Selected`;
+  }
+
+  function confirmCurrentSeatSelection(showMessage = false) {
+    confirmedReturnSeat = { ...selectedReturnSeat };
+
+    if (confirmedReturnSeat.seat === EMPTY_RETURN_SEAT.seat) {
       localStorage.removeItem('returnSeatSelection');
-    }
-
-    function persistConfirmedSeatSelection(){
-      localStorage.setItem('returnSeatSelection', JSON.stringify(confirmedReturnSeat));
-    }
-
-    function updateHeaderBar(){
-      document.getElementById('barDate').textContent = (returnSelection.date || 'Apr 05, 2026').replace(', 2026','');
-      document.getElementById('barFlight').textContent = returnSelection.flight || 'Flight F9 456';
-    }
-
-    function updateSeatVisuals(){
-      seats.forEach(seat => seat.classList.remove('selected'));
-      if(selectedReturnSeat.seat && selectedReturnSeat.seat !== EMPTY_RETURN_SEAT.seat){
-        const current = document.querySelector(`.seat[data-seat="${selectedReturnSeat.seat}"]`);
-        if(current) current.classList.add('selected');
-      }
-    }
-
-    function updateSelectedCard(){
-      const icon = document.querySelector('.selected-seat-icon');
-
-      if(selectedReturnSeat.seat === EMPTY_RETURN_SEAT.seat || !selectedReturnSeat.type){
-        document.getElementById('selectedCardTitle').textContent = 'Seat Selection';
-        document.getElementById('selectedCardSub').textContent = 'Selected: Not selected';
-        document.getElementById('benefit1').textContent = 'Choose any available return seat to see the updated trip total.';
-        document.getElementById('benefit2').textContent = 'Your default total stays at $338.00 until you confirm a return seat choice.';
-        document.getElementById('benefit3').textContent = 'Continue to Bags will carry your confirmed return seat into the outbound bags page.';
-        icon.style.color = '#9ca3af';
-        return;
-      }
-
-      const type = seatTypeMeta[selectedReturnSeat.type];
-      document.getElementById('selectedCardTitle').textContent = `${type.label} (+$${type.price})`;
-      document.getElementById('selectedCardSub').textContent = `Selected: ${selectedReturnSeat.seat}`;
-      document.getElementById('benefit1').textContent = type.benefits[0];
-      document.getElementById('benefit2').textContent = type.benefits[1];
-      document.getElementById('benefit3').textContent = type.benefits[2];
-      icon.style.color = type.color;
-    }
-
-    function updateSummary(){
-      const outboundFlightTotal = Number(outboundSelection.total || 0);
-      const returnFlightTotal = Number(returnSelection.total || 0);
-      const seatTotal = Number(carriedOutboundSeat.price || 0) + Number(selectedReturnSeat.price || 0);
-      const grandTotal = outboundFlightTotal + returnFlightTotal + seatTotal;
-
-      document.getElementById('outboundFlightTotal').textContent = currency(outboundFlightTotal);
-      document.getElementById('returnFlightTotal').textContent = currency(returnFlightTotal);
-      document.getElementById('outboundFlightSub').textContent = `${outboundSelection.route || 'DTW → DEN'} • ${outboundSelection.date || 'Mar 28, 2026'}`;
-      document.getElementById('returnFlightSub').textContent = `${returnSelection.route || 'DEN → DTW'} • ${returnSelection.date || 'Apr 05, 2026'}`;
-
-      document.getElementById('seatSelectionTotal').textContent = currency(seatTotal);
-      document.getElementById('outboundSeatLine').textContent = `${carriedOutboundSeat.seat} (${getSeatLabel(carriedOutboundSeat.type)})`;
-      document.getElementById('outboundSeatPrice').textContent = currency(carriedOutboundSeat.price || 0);
-      document.getElementById('returnSeatLine').textContent = selectedReturnSeat.seat === EMPTY_RETURN_SEAT.seat ? 'Not selected' : `${selectedReturnSeat.seat} (${getSeatLabel(selectedReturnSeat.type)})`;
-      document.getElementById('returnSeatPrice').textContent = currency(selectedReturnSeat.price || 0);
-      document.getElementById('grandTotal').textContent = currency(grandTotal);
-
-      document.getElementById('bottomSeatText').textContent = selectedReturnSeat.seat === EMPTY_RETURN_SEAT.seat ? 'No Seat Selected' : `Seat ${selectedReturnSeat.seat} Selected`;
-    }
-
-    function confirmCurrentSeatSelection(showMessage = false){
-      confirmedReturnSeat = { ...selectedReturnSeat };
-
-      if(confirmedReturnSeat.seat === EMPTY_RETURN_SEAT.seat){
-        localStorage.removeItem('returnSeatSelection');
-        if(showMessage) alert('No return seat selected yet. Your total remains $338.00.');
-        return true;
-      }
-
-      persistConfirmedSeatSelection();
-      if(showMessage) alert(`Seat ${confirmedReturnSeat.seat} confirmed.`);
+      if (showMessage) alert('No return seat selected yet. Your total remains $338.00.');
       return true;
     }
 
-    seats.forEach(seat => {
-      seat.addEventListener('click', () => {
-        selectedReturnSeat = {
-          seat: seat.dataset.seat,
-          type: seat.dataset.type,
-          price: Number(seat.dataset.price || 0)
-        };
-        updateSeatVisuals();
-        updateSelectedCard();
-        updateSummary();
-      });
-    });
+    persistConfirmedSeatSelection();
+    if (showMessage) alert(`Seat ${confirmedReturnSeat.seat} confirmed.`);
+    return true;
+  }
 
-    document.getElementById('confirmBtn').addEventListener('click', () => {
-      confirmCurrentSeatSelection(true);
-    });
-
-    document.getElementById('nextFlightBtn').addEventListener('click', () => {
-      confirmCurrentSeatSelection(false);
-      window.location.href = 'Outbound bags.html';
-    });
-
-    document.getElementById('skipBtn').addEventListener('click', () => {
-      resetPendingSeatState();
-      clearConfirmedSeatSelection();
+  seats.forEach(seat => {
+    seat.addEventListener('click', () => {
+      selectedReturnSeat = {
+        seat: seat.dataset.seat,
+        type: seat.dataset.type,
+        price: Number(seat.dataset.price || 0)
+      };
       updateSeatVisuals();
       updateSelectedCard();
       updateSummary();
     });
+  });
 
-    window.addEventListener('pageshow', (event) => {
-      if(event.persisted){
-        resetPendingSeatState();
-        updateSeatVisuals();
-        updateSelectedCard();
-        updateSummary();
-      }
-    });
+  document.getElementById('confirmBtn').addEventListener('click', () => {
+    confirmCurrentSeatSelection(true);
+  });
 
+  document.getElementById('nextFlightBtn').addEventListener('click', () => {
+    confirmCurrentSeatSelection(false);
+    window.location.href = 'Outbound bags.html';
+  });
+
+  document.getElementById('skipBtn').addEventListener('click', () => {
     resetPendingSeatState();
     clearConfirmedSeatSelection();
-    updateHeaderBar();
     updateSeatVisuals();
     updateSelectedCard();
     updateSummary();
-  </script>
+  });
+
+  window.addEventListener('pageshow', (event) => {
+    if (event.persisted) {
+      resetPendingSeatState();
+      updateSeatVisuals();
+      updateSelectedCard();
+      updateSummary();
+    }
+  });
+
+  resetPendingSeatState();
+  clearConfirmedSeatSelection();
+  updateHeaderBar();
+  updateSeatVisuals();
+  updateSelectedCard();
+  updateSummary();
+</script>
 </body>
 </html>
